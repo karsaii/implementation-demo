@@ -27,7 +27,7 @@ import java.util.List;
 
 public interface ShopFunctions {
     private static Data<String> getItemId(WebDriver driver, String itemName) {
-        final var nameof = ShopConstants.FUNCTION_NAME + "getItemAddButton";
+        final var nameof = ShopConstants.FUNCTION_NAME + "getItemId";
         final var errors = CoreFormatter.isBlankMessageWithName(itemName, "Item name");
         if (StringUtils.isNotBlank(errors)) {
             return DataFactoryFunctions.getInvalidWith("", nameof, errors);
@@ -82,7 +82,7 @@ public interface ShopFunctions {
     }
 
     static DriverFunction<Boolean> isCartContainerPresent() {
-        final var nameof = ShopConstants.FUNCTION_NAME + "clickCart";
+        final var nameof = ShopConstants.FUNCTION_NAME + "isCartContainerPresent";
         return SeleniumExecutor.execute(
             nameof,
             Element.waitPresent(ShopConstants.SHOPPING_CART_CONTAINER, 300, 30000)

@@ -9,9 +9,11 @@ import com.neathorium.thorium.core.namespaces.validators.CoreFormatter;
 import com.neathorium.thorium.exceptions.constants.ExceptionConstants;
 import com.neathorium.thorium.exceptions.namespaces.ExceptionFunctions;
 import com.neathorium.thorium.java.extensions.namespaces.predicates.EqualsPredicates;
+import com.neathorium.thorium.java.extensions.namespaces.predicates.NullablePredicates;
 import net.implementation.demo.common.constants.JSONConstants;
 import net.implementation.demo.common.namespaces.JSONFunctions;
 import net.implementation.demo.typicodejson.constants.RestConstants;
+import net.implementation.demo.typicodejson.constants.UsersConstants;
 import net.implementation.demo.typicodejson.constants.v1.RequestDataConstants;
 import net.implementation.demo.typicodejson.namespaces.RequestFunctions;
 import net.implementation.demo.typicodejson.namespaces.RestFunctions;
@@ -19,18 +21,25 @@ import net.implementation.demo.typicodejson.records.UsersExtractedData;
 import net.implementation.demo.typicodejson.records.UserData;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ParseException;
+import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 public interface UsersFunctions {
     static Data<List<UserData>> getUsersOkHttp() {
-        final var nameof = "UsersFunctions.getUsers";
+        final var nameof = UsersConstants.FUNCTION_NAME + "getUsersOkHttp";
         final var requestData = RequestDataConstants.GET_USERS_DATA;
         final var request = RequestFunctions.get(requestData);
         final List<UserData> negativeList = List.of();
@@ -57,7 +66,7 @@ public interface UsersFunctions {
     }
 
     static Data<List<UserData>> getUsersApacheHttp() {
-        final var nameof = "UsersFunctions.getUsersAlt";
+        final var nameof = UsersConstants.FUNCTION_NAME + "getUsersApacheHttp";
         final List<UserData> negativeList = List.of();
         final var defaultNegative = DataFactoryFunctions.getInvalidWith(negativeList, nameof, "");
         final var requestData = RequestDataConstants.GET_USERS_DATA;
@@ -65,13 +74,23 @@ public interface UsersFunctions {
         var exception = ExceptionConstants.EXCEPTION;
         var statusCode = 404;
         var body = "";
-        try(var httpclient = HttpClients.createDefault()) {
+        CloseableHttpResponse httpResponse = null;
+        try(final var httpclient = HttpClients.createDefault()) {
             final var httpget = new HttpGet(RequestDataFunctions.getUri(requestData));
-            final var httpResponse = httpclient.execute(httpget);
+            httpResponse = httpclient.execute(httpget);
             statusCode = httpResponse.getCode();
             body = EntityUtils.toString(httpResponse.getEntity(), "UTF-8");
+
         } catch (IOException | ParseException ex) {
             exception = ex;
+        } finally {
+            try {
+                if (NullablePredicates.isNotNull(httpResponse)) {
+                    httpResponse.close();
+                }
+            } catch (IOException ex) {
+                exception = ex;
+            }
         }
 
         if (ExceptionFunctions.isException(exception)) {

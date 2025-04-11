@@ -8,7 +8,7 @@ import net.implementation.demo.typicodejson.records.RequestData;
 
 public abstract class RequestDataConstants {
     public static final RequestData GET_USERS_DATA = new RequestData(
-        UsersConstants.ENDPOINT_FRAGMENET,
+        UsersConstants.ENDPOINT_FRAGMENT,
         PathConstants.TYPICODE_BASE_URL,
         RequestType.GET,
         HeadersConstants.BASE_ACCEPT_JSON_HTTP_HEADER_MAP,

@@ -14,12 +14,13 @@ public class RequestFunctionsValidators {
     }
 
     public static String isValid(Request.Builder builder, RequestData data) {
+        final var nameof = "RequestFunctionsValidators.isValid";
         var errors = CoreFormatter.isNullMessageWithName(builder, "Request Builder");
         if (StringUtils.isBlank(errors) && RequestFunctionsValidators.isInvalid(builder)) {
             errors += "Builder was invalid(Matched default wrong builder)" + CoreFormatterConstants.END_LINE;
         }
         errors += CoreFormatter.isNullMessageWithName(data, "Request Data");
 
-        return CoreFormatter.getNamedErrorMessageOrEmpty("RequestFunctionsValidators.isValid", errors);
+        return CoreFormatter.getNamedErrorMessageOrEmpty(nameof, errors);
     }
 }

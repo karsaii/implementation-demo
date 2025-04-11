@@ -7,6 +7,7 @@ public enum RequestType {
     GET("GET"),
     POST("POST"),
     PUT("PUT"),
+    PATCH("PATCH"),
     DELETE("DELETE");
 
     private static final Map<String, RequestType> VALUES = new HashMap<>();
