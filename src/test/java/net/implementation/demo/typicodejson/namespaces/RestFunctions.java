@@ -7,6 +7,7 @@ import com.neathorium.thorium.core.namespaces.validators.CoreFormatter;
 import com.neathorium.thorium.exceptions.constants.ExceptionConstants;
 import com.neathorium.thorium.exceptions.namespaces.ExceptionFunctions;
 import com.neathorium.thorium.java.extensions.namespaces.predicates.NullablePredicates;
+import net.implementation.demo.typicodejson.constants.RestConstants;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -17,7 +18,7 @@ import java.util.function.Function;
 
 public interface RestFunctions {
     static Data<Response> doRequest(OkHttpClient client, Request request) {
-        final var nameof = "RestFunctions.doRequest";
+        final var nameof = RestConstants.FUNCTION_NAME + "doRequest";
         final var errors = (
             CoreFormatter.isNullMessageWithName(client, "HTTP Client") +
             CoreFormatter.isNullMessageWithName(request, "Request")
@@ -39,12 +40,8 @@ public interface RestFunctions {
         return DataFactoryFunctions.getWith(response, status, nameof, message, exception);
     }
 
-    static Function<OkHttpClient, Data<Response>> doRequest(Request request) {
-        return client -> RestFunctions.doRequest(client, request);
-    }
-
     static Data<String> getBody(Response response) {
-        final var nameof = "RestFunctions.getBody";
+        final var nameof = RestConstants.FUNCTION_NAME + "getBody";
         final var errors = CoreFormatter.isNullMessageWithName(response, "Response");
         if (StringUtils.isNotBlank(errors)) {
             return DataFactoryFunctions.getInvalidWith("", nameof, errors);

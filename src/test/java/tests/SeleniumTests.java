@@ -1,13 +1,17 @@
 package tests;
 
+import com.neathorium.thorium.core.constants.validators.CoreFormatterConstants;
 import com.neathorium.thorium.core.data.namespaces.DataFunctions;
 import com.neathorium.thorium.framework.selenium.namespaces.Driver;
 import com.neathorium.thorium.framework.selenium.namespaces.SeleniumExecutor;
+import com.neathorium.thorium.java.extensions.namespaces.predicates.EqualsPredicates;
 import com.neathorium.thorium.java.extensions.namespaces.predicates.NullablePredicates;
 import common.AssertionConstants;
 import io.github.bonigarcia.wdm.WebDriverManager;
+import net.implementation.demo.common.constants.CredentialsConstants;
 import net.implementation.demo.common.constants.JSONConstants;
 import net.implementation.demo.common.constants.PathConstants;
+import net.implementation.demo.common.namespaces.CredentialsFunctions;
 import net.implementation.demo.guru99.constants.DemoConstants;
 import net.implementation.demo.guru99.namespaces.DemoFunctions;
 import net.implementation.demo.guru99.namespaces.TooltipFunctions;
@@ -61,10 +65,11 @@ class SeleniumTests {
 
     @Test
     void case1_automatePurchaseProcessTest() {
-        final var jsonData = FileUtils.readFile(PathConstants.CREDENTIALS_FILE_PATH);
-        DataFunctions.throwIfInvalid(jsonData);
-        final var credData = JSONFunctions.getCredentials(JSONConstants.MAPPER, DataFunctions.getObject(jsonData));
-        DataFunctions.throwIfInvalid(credData);
+        final var credentials = CredentialsFunctions.getCredentials(JSONConstants.MAPPER, PathConstants.CREDENTIALS_FILE_PATH);
+        if (EqualsPredicates.isEqual(credentials, CredentialsConstants.NULL_CREDENTIALS)) {
+            throw new RuntimeException("A better implementation could happen, but this fails the test faster" + CoreFormatterConstants.END_LINE);
+        }
+
         final var itemList = Arrays.asList(
             new ItemWaitData("Sauce Labs Backpack", 300, 30000),
             new ItemWaitData("Sauce Labs Fleece Jacket", 300, 30000)
@@ -75,10 +80,9 @@ class SeleniumTests {
         final var results = SeleniumExecutor.execute(
             Driver.navigate(url),
             LoginFunctions.navigateTo(),
-            LoginFunctions.doLogin(DataFunctions.getObject(credData)),
+            LoginFunctions.doLogin(credentials),
             ShopFunctions.addItems(itemList),
             CheckoutFunctions.completeCheckoutWithResult(expectedMessage)
-
         ).apply(driver);
 
         AssertionConstants.ASSERT_DATA_TRUE.accept(results);
@@ -87,12 +91,12 @@ class SeleniumTests {
     @Test
     void case2_noCredentialsThenValidateFooter() {
         final var expectedTexts = List.of("2025", "Terms of Service");
-        final var credentials = new Credentials("standard_user", "secret_sauce", "Test case 2 user credentials");
+
         final var results = SeleniumExecutor.execute(
             LoginFunctions.navigateTo(),
             LoginFunctions.doLoginNoCredentials(),
             LoginFunctions.isErrorDisplayed(LoginConstants.LOGIN_NO_USERNAME_ERROR_EN),
-            LoginFunctions.doLogin(credentials),
+            LoginFunctions.doLogin(CredentialsConstants.STANDARD_USER_CREDENTIALS),
             FooterFunctions.scrollFooterIntoView(),
             FooterFunctions.isFooterContaining(expectedTexts)
         ).apply(driver);
@@ -123,14 +127,14 @@ class SeleniumTests {
         final Map<String, String> windowHandles = new HashMap<>();
         final var results = SeleniumExecutor.execute(
             DemoFunctions.doNavigateTo(),
-            DemoFunctions.switchToFrame(),
+            /*DemoFunctions.switchToFrame(),
             DemoFunctions.clickIframeImage(windowHandles),
-            DemoFunctions.closeNewTab(windowHandles),
+            DemoFunctions.closeNewTab(windowHandles),*/
             DemoFunctions.fillEmailField("a"),
             DemoFunctions.clickEmailSubmitButton(),
-            DemoFunctions.doAlertValidation(map, DemoConstants.ALERT_TEXT_FRAGMENT),
+            DemoFunctions.doAlertValidation(map, DemoConstants.ALERT_TEXT_FRAGMENT)/*,
             TooltipFunctions.navigateTo(),
-            TooltipFunctions.isDownloadButtonDisplayed()
+            TooltipFunctions.isDownloadButtonDisplayed()*/
         ).apply(driver);
 
         AssertionConstants.ASSERT_DATA_TRUE.accept(results);

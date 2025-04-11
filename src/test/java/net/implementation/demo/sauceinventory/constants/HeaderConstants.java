@@ -14,5 +14,5 @@ public abstract class HeaderConstants {
     public static final String HEADER_TITLE_SELECTOR = "div[class*='header_secondary_container'] > span[class='title']";
     public static final LazyLocator HEADER_TITLE_LOCATOR = LazyLocatorFactory.get(HeaderConstants.HEADER_TITLE_SELECTOR, SelectorStrategyNameConstants.CSS_SELECTOR);
 
-    public static final LazyElement HEADER_TITLE = LazyElementFactory.getWithFilterParameters(HeaderConstants.NAME, HeaderConstants.HEADER_TITLE_LOCATOR);
+    public static final LazyElement HEADER_TITLE = LazyElementFactory.getWithFilterParameters(HeaderConstants.HEADER_TITLE_NAME, HeaderConstants.HEADER_TITLE_LOCATOR);
 }

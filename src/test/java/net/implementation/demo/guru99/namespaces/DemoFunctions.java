@@ -18,6 +18,7 @@ import com.neathorium.thorium.framework.selenium.namespaces.utilities.SeleniumUt
 import com.neathorium.thorium.framework.selenium.records.scripter.ScriptParametersData;
 import com.neathorium.thorium.java.extensions.namespaces.predicates.AmountPredicates;
 import com.neathorium.thorium.java.extensions.namespaces.predicates.EqualsPredicates;
+import com.neathorium.thorium.java.extensions.namespaces.predicates.NullablePredicates;
 import com.neathorium.thorium.java.extensions.namespaces.utilities.StringUtilities;
 import net.implementation.demo.guru99.constants.DemoConstants;
 import org.apache.commons.lang3.StringUtils;
@@ -26,6 +27,8 @@ import org.openqa.selenium.*;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 public interface DemoFunctions {
     static DriverFunction<Boolean> navigateTo() {
@@ -133,23 +136,85 @@ public interface DemoFunctions {
         );
     }
 
-    static DriverFunction<Alert> switchToAlert(Map<String, Alert> map) {
-        final var nameof = DemoConstants.FUNCTION_NAME + "switchToAlert";
-        final DriverFunction<Alert> switchAndSaveRefStep = (WebDriver driver) -> {
-            final var result = Driver.switchToAlert().apply(driver);
-            map.put("Alert", result.OBJECT());
+    private static DriverFunction<Alert> isAlertDisplayed(Map<String, Alert> map) {
+        final var nameof = DemoConstants.FUNCTION_NAME + "isAlertDisplayed";
+        final Function<AtomicReference<Alert>, DriverFunction<Alert>> checkStep = ref -> driver -> {
+            Data<Alert> result = DataFactoryFunctions.getWith(null, false, "negativeNullAlert", "negativeNullAlert");
+            var exception = ExceptionConstants.EXCEPTION;
+            var message = "";
+            var status = false;
+            try {
+                result = Driver.switchToAlert().apply(driver);
+                status = true;
+                message = "Alert is displayed" + CoreFormatterConstants.END_LINE;
+            } catch (NoAlertPresentException ex) {
+                message = "Alert isn't displayed" + CoreFormatterConstants.END_LINE;
+            } catch (Exception blanketException) {
+                message = "Exception occurred while checking for alert displayed" + CoreFormatterConstants.END_LINE + exception.getLocalizedMessage();
+                exception = blanketException;
+            }
 
-            return result;
+            if (DataPredicates.isValidNonFalse(result)) {
+                ref.set(result.OBJECT());
+            }
+            return DataFactoryFunctions.getWith(result.OBJECT(), status, message, exception);
+        };
+
+        final Function<AtomicReference<Alert>, DriverFunction<Boolean>> wrappedStep = ref -> driver -> {
+            final var result = checkStep.apply(ref).apply(driver);
+            return DataFactoryFunctions.replaceObject(result, DataFunctions.getStatus(result));
+        };
+
+        final DriverFunction<Alert> process = driver -> {
+            final AtomicReference<Alert> alert = new AtomicReference<>(null);
+            var exception = ExceptionConstants.EXCEPTION;
+            try {
+                WaitConditions.waitWith(wrappedStep.apply(alert), WaitPredicateFunctions::isTruthyData, 1000, 10000, "Alert displayed").apply(driver);
+            } catch (WaitTimeoutException ex) {
+                exception = ex;
+            }
+            final var verifierStatus = ExceptionFunctions.isNonException(exception);
+            final var returnData = DataFactoryFunctions.getWith(alert.get(), verifierStatus, nameof, "displayed. " + verifierStatus, exception);
+            if (DataPredicates.isValidNonFalse(returnData)) {
+                map.put("Alert", DataFunctions.getObject(returnData));
+            }
+
+            return returnData;
         };
         return SeleniumExecutor.execute(
             nameof,
-            switchAndSaveRefStep
+            process
+        );
+    }
+
+    static DriverFunction<Boolean> isNoAlertPresent(Map<String, Alert> map) {
+        final var nameof = DemoConstants.FUNCTION_NAME + "isNoAlertPresent";
+        final DriverFunction<Boolean> step = (WebDriver driver) -> {
+            final var result = DemoFunctions.isAlertDisplayed(map).apply(driver);
+            final var exception = result.EXCEPTION();
+            if (ExceptionFunctions.isException(exception)) {
+                return DataFactoryFunctions.getBoolean(false, nameof, "Exception during checking for no alerts" + CoreFormatterConstants.END_LINE, exception);
+            }
+
+            return DataFactoryFunctions.getBoolean(NullablePredicates.isNull(DataFunctions.getObject(result)), nameof, "No alert present.");
+        };
+        return SeleniumExecutor.execute(
+            nameof,
+            step
+        );
+    }
+
+    static DriverFunction<Alert> switchToAlert(Map<String, Alert> map) {
+        final var nameof = DemoConstants.FUNCTION_NAME + "switchToAlert";
+        return SeleniumExecutor.execute(
+            nameof,
+            DemoFunctions.isAlertDisplayed(map)
         );
     }
 
     static DriverFunction<Boolean> alertContainsText(Map<String, Alert> map, String expectedMessage) {
         final var nameof = DemoConstants.FUNCTION_NAME + "alertContainsText";
-        return driver -> {
+        final DriverFunction<Boolean> step = driver -> {
             final var errors = (
                 CoreFormatter.isEmptyMessage(map, "Alert Map") +
                 CoreFormatter.isBlankMessageWithName(expectedMessage, "Expected Message")
@@ -168,11 +233,15 @@ public interface DemoFunctions {
             final var message = "Text(\"" + text + "\") " + (status ? "" : "didn't") + " contain the expected text(\"" + expectedMessage + "\")" + CoreFormatterConstants.END_LINE;
             return DataFactoryFunctions.getBoolean(status, nameof, message);
         };
+        return SeleniumExecutor.execute(
+            nameof,
+            step
+        );
     }
 
     static DriverFunction<Boolean> dismissAlert(Map<String, Alert> map) {
-        final var nameof = DemoConstants.FUNCTION_NAME + "alertContainsText";
-        return driver -> {
+        final var nameof = DemoConstants.FUNCTION_NAME + "dismissAlert";
+        final DriverFunction<Boolean> step = driver -> {
             final var errors = CoreFormatter.isEmptyMessage(map, "Alert Map");
             if (StringUtils.isNotBlank(errors)) {
                 return DataFactoryFunctions.getInvalidWith(false, nameof, errors);
@@ -197,7 +266,11 @@ public interface DemoFunctions {
             final var message = "Alert " + (status ? "" : "un") + "successfully dismissed" + CoreFormatterConstants.END_LINE;
             return DataFactoryFunctions.getWith(status, status, nameof, message, exception);
         };
-
+        return SeleniumExecutor.execute(
+            nameof,
+            step,
+            DemoFunctions.isNoAlertPresent(map)
+        );
     }
 
     static DriverFunction<Boolean> doAlertValidation(Map<String, Alert> map, String expected) {
@@ -275,15 +348,6 @@ public interface DemoFunctions {
             DemoFunctions.isIFrameDisplayed(),
             //Driver.switchToFrame(DemoConstants.IFRAME.get())
             switcher
-        );
-    }
-
-    static DriverFunction<Boolean> switchToDefault() {
-        final var nameof = DemoConstants.FUNCTION_NAME + "switchToDefault";
-        return SeleniumExecutor.execute(
-            nameof,
-            Driver.switchToDefaultContent(),
-            DemoFunctions.isWarningDisplayed()
         );
     }
 

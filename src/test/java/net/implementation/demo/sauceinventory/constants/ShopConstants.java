@@ -10,7 +10,6 @@ public abstract class ShopConstants {
     public static final String NAME = "Shop - ";
     public static final String FUNCTION_NAME = "ShopFunctions.";
 
-    public static final String INVENTORY_ITEM_NAME = ShopConstants.NAME + "Inventory Item";
     public static final String ADD_ITEM_NAME = ShopConstants.NAME + "Add Item Button";
     public static final String SHOPPING_CART_NAME = ShopConstants.NAME + "Shopping Cart";
     public static final String SHOPPING_CART_CONTAINER_NAME = ShopConstants.SHOPPING_CART_NAME + " Container";

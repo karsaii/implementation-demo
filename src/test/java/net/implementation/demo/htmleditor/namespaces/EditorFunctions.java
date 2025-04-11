@@ -66,7 +66,7 @@ public interface EditorFunctions {
     }
 
     static DriverFunction<Boolean> clickBoldButton() {
-        final var nameof = EditorConstants.FUNCTION_NAME + "isBoldButtonDisplayed";
+        final var nameof = EditorConstants.FUNCTION_NAME + "clickBoldButton";
         return SeleniumExecutor.execute(
             nameof,
             EditorFunctions.isBoldButtonDisplayed(),
@@ -75,7 +75,7 @@ public interface EditorFunctions {
     }
 
     static DriverFunction<Boolean> isEditorInputFieldClickable() {
-        final var nameof = EditorConstants.FUNCTION_NAME + "isEditorInputFieldDisplayed";
+        final var nameof = EditorConstants.FUNCTION_NAME + "isEditorInputFieldClickable";
         return SeleniumExecutor.execute(
             nameof,
             Element.waitClickable(EditorConstants.INPUT_FIELD, 300, 30000)
@@ -83,7 +83,7 @@ public interface EditorFunctions {
     }
 
     static DriverFunction<Boolean> clickEditorInputField() {
-        final var nameof = EditorConstants.FUNCTION_NAME + "isEditorInputFieldDisplayed";
+        final var nameof = EditorConstants.FUNCTION_NAME + "clickEditorInputField";
         return SeleniumExecutor.execute(
             nameof,
             EditorFunctions.isEditorInputFieldClickable(),
@@ -109,7 +109,7 @@ public interface EditorFunctions {
     }
 
     static DriverFunction<Boolean> doNavigateTo() {
-        final var nameof = EditorConstants.FUNCTION_NAME + "navigateTo";
+        final var nameof = EditorConstants.FUNCTION_NAME + "doNavigateTo";
         return SeleniumExecutor.execute(
             nameof,
             EditorFunctions.navigateTo(),

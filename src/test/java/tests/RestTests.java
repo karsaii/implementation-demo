@@ -1,6 +1,8 @@
 package tests;
 
 import com.neathorium.thorium.core.constants.validators.CoreFormatterConstants;
+import com.neathorium.thorium.core.data.namespaces.predicates.DataPredicates;
+import com.neathorium.thorium.java.extensions.namespaces.utilities.BooleanUtilities;
 import com.neathorium.thorium.java.extensions.namespaces.utilities.StringUtilities;
 import common.AssertionConstants;
 import net.implementation.demo.typicodejson.namespaces.v1.UsersFunctions;
@@ -22,6 +24,15 @@ class RestTests {
     void case5_getUsersLogDataAndVerifyFirstEmailContainsAtSymbolTest() {
         final var userListData = UsersFunctions.getUsersOkHttp();
         final var secondUserListData = UsersFunctions.getUsersApacheHttp();
+        final var dataFetched = (
+            DataPredicates.isValidNonFalse(userListData) &&
+            DataPredicates.isValidNonFalse(secondUserListData)
+        );
+
+        if (BooleanUtilities.isFalse(dataFetched)) {
+            throw new RuntimeException("There were issues during data fetching" + CoreFormatterConstants.END_LINE);
+        }
+
         final var filteredList = UsersFunctions.getExtractedData(userListData);
         UsersFunctions.logExtractedData(RestTests.LOGGER, filteredList);
         final var firstItem = filteredList.getFirst();
